@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📥 Güvenli Dosya İndirme</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .download-form {
+            padding: 30px 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #e74c3c;
+        }
+
+        .download-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .download-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .download-button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #ecf0f1;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #e74c3c;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result-card h3 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+
+        .file-info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .warning strong {
+            color: #856404;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+
+            body {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📥 Güvenli Dosya İndirme</h1>
+            <p>Şifrelenmiş Dosyanızı Çözün</p>
+        </div>
+
+        <div class="download-form">
+            <div class="warning">
+                <strong>🔒 Zero-Knowledge Decryption:</strong><br>
+                • Şifre çözme işlemi tarayıcınızda yapılır<br>
+                • Parolanız sunucuya gönderilmez<br>
+                • Yanlış parola ile dosya açılamaz
+            </div>
+
+            <div id="error-message" class="error-message" style="display: none;"></div>
+
+            <div class="form-group">
+                <label for="password">🔑 Şifre Parolası:</label>
+                <input type="password" id="password" class="password-input"
+                       placeholder="Dosya yüklenirken kullandığınız parolayı girin" required>
+            </div>
+
+            <button id="download-button" class="download-button" disabled>
+                🔓 Şifreyi Çöz ve İndir
+            </button>
+
+            <div id="progress-bar" class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+        </div>
+
+        <div id="result-card" class="result-card">
+            <div class="success-message">
+                <h3>✅ Dosya Başarıyla İndirildi!</h3>
+                <p>Dosyanız şifresi çözüldü ve indirilmeye başlandı.</p>
+            </div>
+            <div class="file-info">
+                <strong id="file-name"></strong><br>
+                <small id="file-size"></small>
+            </div>
+            <a href="/" class="back-link">⬅️ Yeni Dosya Yükle</a>
+        </div>
+    </div>
+
+    <script src="firebase-config.js"></script>
+    <script src="main.js"></script>
+    <script>
+        // URL parametrelerinden dosya linkini al
+        const urlParams = new URLSearchParams(window.location.search);
+        const fileUrl = urlParams.get('url');
+
+        if (!fileUrl) {
+            document.getElementById('error-message').innerHTML =
+                '❌ Geçersiz dosya linki! URL parametresi bulunamadı.';
+            document.getElementById('error-message').style.display = 'block';
+            document.querySelector('.download-form').style.display = 'none';
+        }
+
+        // UI Elements
+        const passwordInput = document.getElementById('password');
+        const downloadButton = document.getElementById('download-button');
+        const errorMessage = document.getElementById('error-message');
+        const resultCard = document.getElementById('result-card');
+        const fileName = document.getElementById('file-name');
+        const fileSize = document.getElementById('file-size');
+        const progressFill = document.getElementById('progress-fill');
+
+        // Parola girişi kontrol
+        passwordInput.addEventListener('input', function() {
+            downloadButton.disabled = !this.value.trim();
+        });
+
+        // İndirme işlemi
+        downloadButton.addEventListener('click', async function() {
+            const password = passwordInput.value.trim();
+
+            if (!password) return;
+
+            this.disabled = true;
+            this.textContent = '🔓 Şifresi Çözülüyor...';
+            errorMessage.style.display = 'none';
+            progressFill.style.width = '25%';
+
+            try {
+                // 1. Firebase'den şifreli dosyayı indir
+                progressFill.style.width = '50%';
+                const encryptedBundle = await window.zeroKnowledgeCrypto.downloadFromFirebase(fileUrl);
+
+                // 2. Şifreyi çöz
+                progressFill.style.width = '75%';
+
+                // Dosya adını URL'den çıkar (son kısım)
+                const urlParts = fileUrl.split('/');
+                const encodedFileName = urlParts[urlParts.length - 1].split('?')[0];
+                const originalFileName = decodeURIComponent(encodedFileName.replace('.encrypted', ''));
+
+                // Şifreli bundle'ı çöz
+                const decryptedBuffer = await window.zeroKnowledgeCrypto.decryptFile(encryptedBundle, password);
+
+                progressFill.style.width = '100%';
+
+                // 3. Dosyayı kullanıcıya indir
+                const blob = new Blob([decryptedBuffer]);
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = originalFileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                // Sonuç göster
+                fileName.textContent = originalFileName;
+                fileSize.textContent = `${(decryptedBuffer.byteLength / 1024 / 1024).toFixed(2)} MB`;
+                resultCard.style.display = 'block';
+                document.querySelector('.download-form').style.display = 'none';
+
+            } catch (error) {
+                errorMessage.innerHTML = `❌ Hata: ${error.message}<br>
+                                        <small>Parolanızı kontrol edin veya dosya linkinin doğru olduğundan emin olun.</small>`;
+                errorMessage.style.display = 'block';
+                this.disabled = false;
+                this.textContent = '🔓 Şifreyi Çöz ve İndir';
+                progressFill.style.width = '0%';
+            }
+        });
+
+        // Enter tuşu ile indirme
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !downloadButton.disabled) {
+                downloadButton.click();
+            }
+        });
+    </script>
+</body>
+</html>
